@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大分 今日の天気</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14251A;
+    --forest-deep: #1F3B26;
+    --leaf: #9FCB4A;
+    --leaf-dim: #6E8F3E;
+    --sage: #E4EDD9;
+    --moss: #7FA37A;
+    --rain-green: #5FA893;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  body {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    color: var(--sage);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 12px;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    min-height: 220px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, var(--ink) 0%, var(--forest-deep) 100%);
+    padding: 20px 22px 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(8, 18, 12, 0.35);
+  }
+
+  /* signature: rising onsen steam, ambient, behind content */
+  .steam {
+    position: absolute;
+    bottom: -10px;
+    opacity: 0.14;
+    filter: blur(1px);
+    pointer-events: none;
+  }
+  .steam svg { display: block; }
+  .steam.s1 { left: 8%; width: 60px; animation: rise 9s ease-in-out infinite; }
+  .steam.s2 { left: 28%; width: 44px; animation: rise 11s ease-in-out infinite 2s; }
+  .steam.s3 { right: 14%; width: 52px; animation: rise 10s ease-in-out infinite 4s; }
+
+  @keyframes rise {
+    0%   { transform: translateY(0) scaleX(1); opacity: 0; }
+    15%  { opacity: 0.16; }
+    50%  { transform: translateY(-70px) scaleX(1.15); opacity: 0.12; }
+    100% { transform: translateY(-150px) scaleX(0.9); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .steam { animation: none !important; opacity: 0.06; }
+  }
+
+  .top-row {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--leaf);
+    text-transform: uppercase;
+  }
+
+  .place {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  .date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--moss);
+    text-align: right;
+  }
+
+  .periods {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .period {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(228, 237, 217, 0.06);
+    border: 1px solid rgba(228, 237, 217, 0.10);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+
+  .period-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--moss);
+  }
+
+  .period-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .period-temp {
+    font-family: 'Shippori Mincho', serif;
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .period-temp .unit {
+    font-size: 16px;
+    color: var(--moss);
+    margin-left: 2px;
+  }
+
+  .kabosu-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+
+  .period-condition {
+    font-size: 12px;
+    color: var(--leaf);
+    font-weight: 500;
+  }
+
+  .bottom-row {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(228, 237, 217, 0.12);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--moss);
+    letter-spacing: 0.06em;
+  }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--sage);
+  }
+
+  .stat-value.hi { color: var(--leaf); }
+  .stat-value.lo { color: var(--rain-green); }
+
+  .updated {
+    position: relative;
+    z-index: 2;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--moss);
+    opacity: 0.7;
+    text-align: right;
+  }
+
+  .state-msg {
+    position: relative;
+    z-index: 2;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--moss);
+    padding: 30px 0;
+    text-align: center;
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+  <div class="card" id="card">
+    <div class="steam s1"><svg viewBox="0 0 20 60" width="60" height="60"><path d="M10 60 C 4 46, 16 40, 10 28 C 4 16, 16 10, 10 0" stroke="#E4EDD9" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
+    <div class="steam s2"><svg viewBox="0 0 20 60" width="44" height="44"><path d="M10 60 C 4 46, 16 40, 10 28 C 4 16, 16 10, 10 0" stroke="#E4EDD9" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
+    <div class="steam s3"><svg viewBox="0 0 20 60" width="52" height="52"><path d="M10 60 C 4 46, 16 40, 10 28 C 4 16, 16 10, 10 0" stroke="#E4EDD9" stroke-width="3" fill="none" stroke-linecap="round"/></svg></div>
+
+    <div class="top-row">
+      <div>
+        <div class="eyebrow">OITA CITY / 大分市</div>
+        <div class="place">大分の今日の天気</div>
+      </div>
+      <div class="date" id="date">--</div>
+    </div>
+
+    <div id="loading" class="state-msg">読み込み中 ...</div>
+    <div id="error" class="state-msg hidden">天気データを取得できませんでした</div>
+
+    <div id="content" class="hidden">
+      <div class="periods">
+        <div class="period">
+          <div class="period-label">午前 AM</div>
+          <div class="period-main">
+            <div class="period-temp" id="temp-am">--<span class="unit">℃</span></div>
+            <svg id="icon-am" class="kabosu-icon" viewBox="0 0 100 100"></svg>
+          </div>
+          <div class="period-condition" id="condition-am">--</div>
+        </div>
+        <div class="period">
+          <div class="period-label">午後 PM</div>
+          <div class="period-main">
+            <div class="period-temp" id="temp-pm">--<span class="unit">℃</span></div>
+            <svg id="icon-pm" class="kabosu-icon" viewBox="0 0 100 100"></svg>
+          </div>
+          <div class="period-condition" id="condition-pm">--</div>
+        </div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="stat">
+          <div class="stat-label">最高</div>
+          <div class="stat-value hi" id="temp-max">--℃</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">最低</div>
+          <div class="stat-value lo" id="temp-min">--℃</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">湿度</div>
+          <div class="stat-value" id="humidity">--%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">風速</div>
+          <div class="stat-value" id="wind">-- m/s</div>
+        </div>
+      </div>
+
+      <div class="updated" id="updated">--</div>
+    </div>
+  </div>
+
+<script>
+  const LAT = 33.2382;
+  const LON = 131.6126;
+  const AM_HOUR = 9;   // representative morning hour
+  const PM_HOUR = 15;  // representative afternoon hour
+  const API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo&wind_speed_unit=ms&forecast_days=1`;
+
+  // WMO weather code -> Japanese label + icon mood
+  const WEATHER_MAP = {
+    0:  { label: '快晴',       mood: 'sun' },
+    1:  { label: 'ほぼ晴れ',   mood: 'sun' },
+    2:  { label: '晴れ時々曇り', mood: 'cloud-sun' },
+    3:  { label: '曇り',       mood: 'cloud' },
+    45: { label: '霧',         mood: 'fog' },
+    48: { label: '霧氷',       mood: 'fog' },
+    51: { label: '小雨（霧雨）', mood: 'rain' },
+    53: { label: '霧雨',       mood: 'rain' },
+    55: { label: '強い霧雨',   mood: 'rain' },
+    56: { label: '着氷性の霧雨', mood: 'rain' },
+    57: { label: '強い着氷性の霧雨', mood: 'rain' },
+    61: { label: '小雨',       mood: 'rain' },
+    63: { label: '雨',         mood: 'rain' },
+    65: { label: '強い雨',     mood: 'rain' },
+    66: { label: '着氷性の雨', mood: 'rain' },
+    67: { label: '強い着氷性の雨', mood: 'rain' },
+    71: { label: '小雪',       mood: 'snow' },
+    73: { label: '雪',         mood: 'snow' },
+    75: { label: '大雪',       mood: 'snow' },
+    77: { label: '雪あられ',   mood: 'snow' },
+    80: { label: 'にわか雨',   mood: 'rain' },
+    81: { label: '強いにわか雨', mood: 'rain' },
+    82: { label: '激しいにわか雨', mood: 'rain' },
+    85: { label: 'にわか雪',   mood: 'snow' },
+    86: { label: '強いにわか雪', mood: 'snow' },
+    95: { label: '雷雨',       mood: 'storm' },
+    96: { label: '雷雨（ひょう）', mood: 'storm' },
+    99: { label: '激しい雷雨（ひょう）', mood: 'storm' },
+  };
+
+  // Renders a kabosu (citrus) slice whose wedges encode the hour's weather mood.
+  function renderKabosuIcon(elementId, mood) {
+    const svg = document.getElementById(elementId);
+    const leaf = '#9FCB4A';
+    const dim = '#3E5A2E';
+    const rain = '#5FA893';
+    const sage = '#E4EDD9';
+
+    const wedges = 8;
+    let wedgePaths = '';
+    const cx = 50, cy = 50, rOuter = 38, rInner = 8;
+    for (let i = 0; i < wedges; i++) {
+      const a0 = (i / wedges) * Math.PI * 2 - Math.PI / 2;
+      const a1 = ((i + 1) / wedges) * Math.PI * 2 - Math.PI / 2;
+      const x0 = cx + rOuter * Math.cos(a0), y0 = cy + rOuter * Math.sin(a0);
+      const x1 = cx + rOuter * Math.cos(a1), y1 = cy + rOuter * Math.sin(a1);
+      const ix0 = cx + rInner * Math.cos(a0), iy0 = cy + rInner * Math.sin(a0);
+      const ix1 = cx + rInner * Math.cos(a1), iy1 = cy + rInner * Math.sin(a1);
+      let fill = leaf;
+      let opacity = 1;
+      if (mood === 'cloud') opacity = 0.55;
+      if (mood === 'cloud-sun') opacity = i % 2 === 0 ? 1 : 0.5;
+      if (mood === 'rain' || mood === 'storm') opacity = 0.4;
+      if (mood === 'fog') opacity = 0.35;
+      if (mood === 'snow') { fill = sage; opacity = 0.85; }
+      wedgePaths += `<path d="M ${ix0} ${iy0} L ${x0} ${y0} A ${rOuter} ${rOuter} 0 0 1 ${x1} ${y1} L ${ix1} ${iy1} A ${rInner} ${rInner} 0 0 0 ${ix0} ${iy0} Z" fill="${fill}" opacity="${opacity}" stroke="${dim}" stroke-width="0.6"/>`;
+    }
+
+    let extras = '';
+    if (mood === 'sun') {
+      for (let i = 0; i < wedges; i++) {
+        const a = (i / wedges) * Math.PI * 2 - Math.PI / 2 + (Math.PI / wedges);
+        const x0 = cx + (rOuter + 3) * Math.cos(a), y0 = cy + (rOuter + 3) * Math.sin(a);
+        const x1 = cx + (rOuter + 9) * Math.cos(a), y1 = cy + (rOuter + 9) * Math.sin(a);
+        extras += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${leaf}" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+    } else if (mood === 'rain' || mood === 'storm') {
+      extras += `<line x1="30" y1="92" x2="26" y2="102" stroke="${rain}" stroke-width="3" stroke-linecap="round"/>`;
+      extras += `<line x1="50" y1="94" x2="46" y2="106" stroke="${rain}" stroke-width="3" stroke-linecap="round"/>`;
+      extras += `<line x1="70" y1="92" x2="66" y2="102" stroke="${rain}" stroke-width="3" stroke-linecap="round"/>`;
+    } else if (mood === 'cloud' || mood === 'cloud-sun' || mood === 'fog') {
+      extras += `<ellipse cx="50" cy="86" rx="26" ry="9" fill="${sage}" opacity="0.5"/>`;
+    } else if (mood === 'snow') {
+      extras += `<circle cx="30" cy="94" r="2.2" fill="${sage}"/><circle cx="50" cy="98" r="2.2" fill="${sage}"/><circle cx="70" cy="94" r="2.2" fill="${sage}"/>`;
+    }
+
+    svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${rInner}" fill="${dim}"/>${wedgePaths}${extras}`;
+  }
+
+  function formatDate(d) {
+    const days = ['日', '月', '火', '水', '木', '金', '土'];
+    return `${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
+  }
+
+  function formatTime(d) {
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  async function loadWeather() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+
+      const now = new Date();
+      document.getElementById('date').textContent = formatDate(now);
+
+      const amCode = data.hourly.weather_code[AM_HOUR];
+      const pmCode = data.hourly.weather_code[PM_HOUR];
+      const amInfo = WEATHER_MAP[amCode] || { label: '不明', mood: 'cloud' };
+      const pmInfo = WEATHER_MAP[pmCode] || { label: '不明', mood: 'cloud' };
+
+      document.getElementById('temp-am').innerHTML = `${Math.round(data.hourly.temperature_2m[AM_HOUR])}<span class="unit">℃</span>`;
+      document.getElementById('temp-pm').innerHTML = `${Math.round(data.hourly.temperature_2m[PM_HOUR])}<span class="unit">℃</span>`;
+      document.getElementById('condition-am').textContent = amInfo.label;
+      document.getElementById('condition-pm').textContent = pmInfo.label;
+      renderKabosuIcon('icon-am', amInfo.mood);
+      renderKabosuIcon('icon-pm', pmInfo.mood);
+
+      document.getElementById('temp-max').textContent = `${Math.round(data.daily.temperature_2m_max[0])}℃`;
+      document.getElementById('temp-min').textContent = `${Math.round(data.daily.temperature_2m_min[0])}℃`;
+      document.getElementById('humidity').textContent = `${Math.round(data.current.relative_humidity_2m)}%`;
+      document.getElementById('wind').textContent = `${data.current.wind_speed_10m.toFixed(1)} m/s`;
+      document.getElementById('updated').textContent = `更新: ${formatTime(now)}`;
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+    } catch (e) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('content').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+    }
+  }
+
+  loadWeather();
+  setInterval(loadWeather, 15 * 60 * 1000); // refresh every 15 minutes
+</script>
+
+</body>
+</html>
