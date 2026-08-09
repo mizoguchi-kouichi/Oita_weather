@@ -23,7 +23,7 @@
   html, body {
     margin: 0;
     padding: 0;
-    background: transparent;
+    background: var(--ink);
   }
 
   body {
@@ -114,6 +114,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 6px;
     background: rgba(228, 237, 217, 0.06);
     border: 1px solid rgba(228, 237, 217, 0.10);
@@ -128,13 +130,6 @@
     color: var(--moss);
   }
 
-  .period-main {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
   .period-temp {
     font-family: 'Shippori Mincho', serif;
     font-weight: 700;
@@ -147,12 +142,6 @@
     font-size: 16px;
     color: var(--moss);
     margin-left: 2px;
-  }
-
-  .kabosu-icon {
-    width: 52px;
-    height: 52px;
-    flex-shrink: 0;
   }
 
   .period-condition {
@@ -241,18 +230,12 @@
       <div class="periods">
         <div class="period">
           <div class="period-label">午前 AM</div>
-          <div class="period-main">
-            <div class="period-temp" id="temp-am">--<span class="unit">℃</span></div>
-            <svg id="icon-am" class="kabosu-icon" viewBox="0 0 100 100"></svg>
-          </div>
+          <div class="period-temp" id="temp-am">--<span class="unit">℃</span></div>
           <div class="period-condition" id="condition-am">--</div>
         </div>
         <div class="period">
           <div class="period-label">午後 PM</div>
-          <div class="period-main">
-            <div class="period-temp" id="temp-pm">--<span class="unit">℃</span></div>
-            <svg id="icon-pm" class="kabosu-icon" viewBox="0 0 100 100"></svg>
-          </div>
+          <div class="period-temp" id="temp-pm">--<span class="unit">℃</span></div>
           <div class="period-condition" id="condition-pm">--</div>
         </div>
       </div>
@@ -319,55 +302,6 @@
     99: { label: '激しい雷雨（ひょう）', mood: 'storm' },
   };
 
-  // Renders a kabosu (citrus) slice whose wedges encode the hour's weather mood.
-  function renderKabosuIcon(elementId, mood) {
-    const svg = document.getElementById(elementId);
-    const leaf = '#9FCB4A';
-    const dim = '#3E5A2E';
-    const rain = '#5FA893';
-    const sage = '#E4EDD9';
-
-    const wedges = 8;
-    let wedgePaths = '';
-    const cx = 50, cy = 50, rOuter = 38, rInner = 8;
-    for (let i = 0; i < wedges; i++) {
-      const a0 = (i / wedges) * Math.PI * 2 - Math.PI / 2;
-      const a1 = ((i + 1) / wedges) * Math.PI * 2 - Math.PI / 2;
-      const x0 = cx + rOuter * Math.cos(a0), y0 = cy + rOuter * Math.sin(a0);
-      const x1 = cx + rOuter * Math.cos(a1), y1 = cy + rOuter * Math.sin(a1);
-      const ix0 = cx + rInner * Math.cos(a0), iy0 = cy + rInner * Math.sin(a0);
-      const ix1 = cx + rInner * Math.cos(a1), iy1 = cy + rInner * Math.sin(a1);
-      let fill = leaf;
-      let opacity = 1;
-      if (mood === 'cloud') opacity = 0.55;
-      if (mood === 'cloud-sun') opacity = i % 2 === 0 ? 1 : 0.5;
-      if (mood === 'rain' || mood === 'storm') opacity = 0.4;
-      if (mood === 'fog') opacity = 0.35;
-      if (mood === 'snow') { fill = sage; opacity = 0.85; }
-      wedgePaths += `<path d="M ${ix0} ${iy0} L ${x0} ${y0} A ${rOuter} ${rOuter} 0 0 1 ${x1} ${y1} L ${ix1} ${iy1} A ${rInner} ${rInner} 0 0 0 ${ix0} ${iy0} Z" fill="${fill}" opacity="${opacity}" stroke="${dim}" stroke-width="0.6"/>`;
-    }
-
-    let extras = '';
-    if (mood === 'sun') {
-      for (let i = 0; i < wedges; i++) {
-        const a = (i / wedges) * Math.PI * 2 - Math.PI / 2 + (Math.PI / wedges);
-        const x0 = cx + (rOuter + 3) * Math.cos(a), y0 = cy + (rOuter + 3) * Math.sin(a);
-        const x1 = cx + (rOuter + 9) * Math.cos(a), y1 = cy + (rOuter + 9) * Math.sin(a);
-        extras += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${leaf}" stroke-width="2.5" stroke-linecap="round"/>`;
-      }
-    } else if (mood === 'rain' || mood === 'storm') {
-      extras += `<line x1="30" y1="92" x2="26" y2="102" stroke="${rain}" stroke-width="3" stroke-linecap="round"/>`;
-      extras += `<line x1="50" y1="94" x2="46" y2="106" stroke="${rain}" stroke-width="3" stroke-linecap="round"/>`;
-      extras += `<line x1="70" y1="92" x2="66" y2="102" stroke="${rain}" stroke-width="3" stroke-linecap="round"/>`;
-    } else if (mood === 'cloud' || mood === 'cloud-sun' || mood === 'fog') {
-      extras += `<ellipse cx="50" cy="86" rx="26" ry="9" fill="${sage}" opacity="0.5"/>`;
-    } else if (mood === 'snow') {
-      extras += `<circle cx="30" cy="94" r="2.2" fill="${sage}"/><circle cx="50" cy="98" r="2.2" fill="${sage}"/><circle cx="70" cy="94" r="2.2" fill="${sage}"/>`;
-    }
-
-    svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${rInner}" fill="${dim}"/>${wedgePaths}${extras}`;
-  }
-
   function formatDate(d) {
     const days = ['日', '月', '火', '水', '木', '金', '土'];
     return `${d.getMonth() + 1}月${d.getDate()}日（${days[d.getDay()]}）`;
@@ -397,8 +331,6 @@
       document.getElementById('temp-pm').innerHTML = `${Math.round(data.hourly.temperature_2m[PM_HOUR])}<span class="unit">℃</span>`;
       document.getElementById('condition-am').textContent = amInfo.label;
       document.getElementById('condition-pm').textContent = pmInfo.label;
-      renderKabosuIcon('icon-am', amInfo.mood);
-      renderKabosuIcon('icon-pm', pmInfo.mood);
 
       document.getElementById('temp-max').textContent = `${Math.round(data.daily.temperature_2m_max[0])}℃`;
       document.getElementById('temp-min').textContent = `${Math.round(data.daily.temperature_2m_min[0])}℃`;
